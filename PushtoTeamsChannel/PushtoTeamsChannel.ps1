@@ -1,4 +1,4 @@
-﻿<#
+<#
   .SYNOPSIS
   Send a message to a teams channel using a webhook. 
 
