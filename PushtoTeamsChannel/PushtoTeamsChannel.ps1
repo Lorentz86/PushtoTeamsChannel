@@ -29,6 +29,9 @@
   .EXAMPLE
   PS> Push-Message -Channel "Security" -Title "Example" -Message "This is an example of a security warning"  
 
+  .EXAMPLE with variable
+  PS> Push-Message -Channel "Security" -Title $Title -Message $Message  
+
 #>
 
 function Push-Message 
@@ -56,40 +59,14 @@ function Push-Message
 		$Update = 'Update'
 		$Error = 'Error'
 		$Security = 'Security'
-										#BodyTemplate contains the payload of the message.  
-		$BodyTemplate = @"
-{
-   "type":"message",
-   "attachments":[
-      {
-         "contentType":"application/vnd.microsoft.card.adaptive",
-         "contentUrl":null,
-         "content":{
-    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-    "type": "AdaptiveCard",
-    "version": "1.0",
-    "body": [
-        {
-            "type": "TextBlock",
-            "id": "c9abc946-1ac0-f9da-b26b-de3fe67d2650",
-            "text": "Title",
-            "wrap": true,
-            "weight": "Bolder"
-        },
-        {
-            "type": "TextBlock",
-            "id": "8e95dbbb-fc68-61fa-4d54-00c9bf380380",
-            "text": "Message",
-            "wrap": true
-        }
-    ],
-    "padding": "None"
-}
-      }
-   ]
-}
-
-"@
+										#$JSONBody contains the payload of the message.  
+		$JSONBody = [PSCustomObject][Ordered]@{
+		"@type" = "MessageCard"
+		"@context" = "<http://schema.org/extensions>"
+		"summary" = "$Channel"
+		"themeColor" = '0078D7'
+		"title" = "$Title"
+		"text" = "$Message"
 	}
 
 
@@ -112,13 +89,13 @@ function Push-Message
 		{
 			$webhook = "https://yourdomain.webhook.office.com"
 		}
-		$body = $BodyTemplate.Replace("Title",$Title).Replace("Message",$Message) # This command will send a message to the webhook.
+	$Body = ConvertTo-Json $JSONBody
 
 	}
 
 	End
 	{
-		Invoke-RestMethod -uri $webhook -Method Post -body $Body -ContentType 'application/json'
+		Invoke-RestMethod -uri $webhook -Method Post -body $Body -ContentType 'application/json' # This command will send a message to the webhook.
 
 	}
 }
